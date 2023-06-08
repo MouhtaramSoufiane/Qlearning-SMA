@@ -1,9 +1,16 @@
-package ma.enset.QLearning.sequencial;
+package ma.enset.QLearning.sma;
+
+import jade.core.AID;
+import jade.core.Agent;
+import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.CyclicBehaviour;
+import jade.lang.acl.ACLMessage;
+import jade.util.leap.ArrayList;
+import jade.util.leap.List;
 
 import java.util.Random;
 
-
-public class Qlearning {
+public class qlearningAgent extends Agent {
     private final double ALPHA=0.1;
     private final double GAMMA=0.9;
     private final int MAX_EPOCH=200;
@@ -15,8 +22,9 @@ public class Qlearning {
     private int [][]grid=new int[GRID_SIZE][GRID_SIZE];
     private double [][]qtable=new double[GRID_SIZE*GRID_SIZE][ACTION_SIZE];
     private int [][]actions;
+    private     List tab=new ArrayList();
 
-    public Qlearning() {
+    public void setup(){
         actions=new int[][]{
                 {0,-1},//left
                 {0,1},//right
@@ -29,7 +37,46 @@ public class Qlearning {
                 {0,0,0,0},
                 {0,0,0,0}
         };
+
+
+        addBehaviour(new Behaviour() {
+            @Override
+            public void action() {
+
+
+                    int iter=0;
+                    int currentState;
+                    int nextState;
+                    while(iter<MAX_EPOCH){
+                        resetState();
+                        while(!finished()){
+
+                            currentState=state_I*GRID_SIZE+state_J;
+                            int act = choiceAction(0.4);
+                            nextState = executeAction(act);
+                            int act1=choiceAction(0);
+                            qtable[currentState][act]=qtable[currentState][act]+ALPHA*(grid[state_I][state_J]+GAMMA*qtable[nextState][act1]-qtable[currentState][act]);
+
+                        }
+                        iter++;
+                    }
+                    showResult();
+
+               ACLMessage aclMessage=new ACLMessage();
+               aclMessage.addReceiver(new AID("superagent",AID.ISLOCALNAME));
+               aclMessage.setContent(tab.toString());
+               send(aclMessage);
+
+                }
+
+
+            @Override
+            public boolean done() {
+                return true;
+            }
+        });
     }
+
     private void resetState(){
         state_I=3;
         state_J=3;
@@ -41,7 +88,7 @@ public class Qlearning {
         double bestQvalue=0;
         int act = 0;
         if(rnd.nextDouble()<eps){
-             return rnd.nextInt(ACTION_SIZE);
+            return rnd.nextInt(ACTION_SIZE);
 
         }
         else{
@@ -67,13 +114,18 @@ public class Qlearning {
         System.out.println("");
         resetState();
         System.out.print("Path :");
+
+
         while (!finished()){
             int action = choiceAction(0);
             System.out.print((state_I*GRID_SIZE+state_J)+" --> ");
+            tab.add(state_I*GRID_SIZE+state_J);
             executeAction(action);
+
 
         }
         System.out.println(state_I*GRID_SIZE+state_J);
+        tab.add(state_I*GRID_SIZE+state_J);
     }
     public boolean finished(){
         return grid[state_I][state_J]==1;
@@ -81,28 +133,7 @@ public class Qlearning {
     public int executeAction(int act ){
         state_I=Math.max(0,Math.min(actions[act][0]+state_I,3));
         state_J=Math.max(0,Math.min(actions[act][1]+state_J,3));
-      return state_I*GRID_SIZE+state_J;
-    }
-    public void runQlearning(){
-        int iter=0;
-        int currentState;
-        int nextState;
-        while(iter<MAX_EPOCH){
-            resetState();
-            while(!finished()){
-
-                currentState=state_I*GRID_SIZE+state_J;
-                int act = choiceAction(0.4);
-                nextState = executeAction(act);
-                int act1=choiceAction(0);
-                qtable[currentState][act]=qtable[currentState][act]+ALPHA*(grid[state_I][state_J]+GAMMA*qtable[nextState][act1]-qtable[currentState][act]);
-
-            }
-            iter++;
-        }
-        showResult();
-
-
+        return state_I*GRID_SIZE+state_J;
     }
 
 
