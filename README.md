@@ -1,4 +1,4 @@
-# Qlearning-SMA
+# Q-learning-SMA
 
 Q-learning is a reinforcement learning algorithm that can be applied in a multi-agent system (MAS) to enable agents to learn optimal policies through interactions with the environment. In a multi-agent setting, Q-learning can be used to train individual agents to make decisions based on their observations and rewards, considering the actions and policies of other agents in the environment.
 ## Steps
